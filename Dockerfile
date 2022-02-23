@@ -1,20 +1,22 @@
-FROM ubuntu:18.04
+FROM pytorch/pytorch:1.10.0-cuda11.3-cudnn8-runtime
 
-# Install APT packages
-RUN apt-get update && apt-get install -y cmake libglew-dev xorg-dev python3 python3-pip python3-dev
+RUN pip install numpy-quaternion \
+                torch-scatter \
+                torch-sparse \
+                torch-cluster \
+                torch-spline-conv \
+                torch-geometric \
+                -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+RUN apt update && apt install -y tmux \
+                                 vim \
+                                 libglew-dev
 
-# Install third party Python packages
-RUN pip3 install numpy numpy-quaternion
+COPY . /RoboGrammar
+WORKDIR /RoboGrammar
 
-# Set PYTHONPATH
-ENV PYTHONPATH="/robot_design/examples/design_search:/robot_design/examples/graph_learning:/robot_design/build/examples/python_bindings:$PYTHONPATH"
-
-# Copy our code and build
-WORKDIR /robot_design
-COPY . .
-WORKDIR /robot_design/build
-RUN cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-RUN make -j8
-
-WORKDIR /robot_design
-CMD python3 examples/design_search/design_search.py
+RUN git submodule update --init
+RUN mkdir build
+RUN cd build && \
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo .. && \
+    make -j24
+CMD ["/bin/bash"]
