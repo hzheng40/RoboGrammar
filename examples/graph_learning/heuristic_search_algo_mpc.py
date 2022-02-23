@@ -160,7 +160,7 @@ def search_algo(args):
     env = RobotGrammarEnv(task, rules, seed = args.seed, mpc_num_processes = args.mpc_num_processes)
 
     # initialize Value function
-    device = 'cpu'
+    device = 'cuda'
     state = env.reset()
     sample_adj_matrix, sample_features, sample_masks = preprocessor.preprocess(state)
     num_features = sample_features.shape[1]
