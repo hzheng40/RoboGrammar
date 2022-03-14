@@ -34,7 +34,7 @@ def load_terminal_design_data(raw_dataset_path, grammar_file):
         max_nodes = 0
         for row in reader:
             rule_seq = ast.literal_eval(row['rule_seq'])
-            result = float(row['result'])
+            result = float(row['reward'])
 
             all_results.append(result)
 
