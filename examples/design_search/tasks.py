@@ -37,6 +37,39 @@ class ForwardSpeedTask(ABC):
   def add_terrain(self, sim):
     pass
 
+class MixedTerrainTask(ForwardSpeedTask):
+  def __init__(self, seed=0, **kwargs):
+    super().__init__(**kwargs)
+    self.seed = seed
+
+    self.floor = rd.Prop(rd.PropShape.BOX, 0.0, 0.5, [20.0, 1.0, 10.0])
+    self.bump = rd.Prop(rd.PropShape.BOX, 0.0, 0.5, [0.1, 0.2, 10.0])
+    self.wall = rd.Prop(rd.PropShape.BOX, 0.0, 0.5, [0.05, 0.5, 0.25])
+    self.rng = np.random.RandomState(self.seed)
+    y = np.clip(self.rng.normal(0.5, 0.125, size=(97, 33)), 0.0, 1.0)
+    self.heightfield = rd.HeightfieldProp(0.5, [30.0, 0.25, 10.0], y)
+
+
+  def add_terrain(self, sim):
+    
+    # floor
+    sim.add_prop(self.floor, [0.0, -1.0, 0.0],
+                 rd.Quaterniond(1.0, 0.0, 0.0, 0.0))
+
+    sim.add_prop(self.heightfield, [20.0, 0.0, 0.0],
+                 rd.Quaterniond(1.0, 0.0, 0.0, 0.0))
+
+    # random bumps
+    for i in range(20):
+      sim.add_prop(self.bump,
+                   [self.rng.normal(0.5, 0.1) + i, -0.2 + 0.02 * (i + 1), 0.0],
+                   rd.Quaterniond(1.0, 0.0, 0.0, 0.0))
+    # random walls
+    for i in range(10):
+      sim.add_prop(self.wall,
+                   [self.rng.normal(2.0 * i + 0.5, 0.1), 0.0, self.rng.normal(i % 2 - 0.5, 0.1)],
+                   rd.Quaterniond(1.0, 0.0, 0.0, 0.0))
+
 class FlatTerrainTask(ForwardSpeedTask):
   """
   Task where the objective is to move forward as quickly as possible over flat
@@ -193,7 +226,7 @@ class HillTerrainTask(ForwardSpeedTask):
     self.seed = seed
 
     self.rng = np.random.RandomState(self.seed)
-    y = np.clip(self.rng.normal(0.5, 0.125, size=(97, 33)), 0.0, 1.0)
+    y = np.clip(self.rng.normal(0.5, 0.625, size=(97, 33)), 0.0, 1.0)
     self.heightfield = rd.HeightfieldProp(0.5, [30.0, 0.25, 10.0], y)
 
   def add_terrain(self, sim):
